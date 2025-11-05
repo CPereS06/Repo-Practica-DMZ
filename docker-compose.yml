@@ -1,0 +1,104 @@
+services:
+  ext1:
+    build:
+      context: ./external1
+    image: externalimage
+    container_name: ext1
+    networks:
+      extranet:
+        ipv4_address: 10.5.0.20
+    depends_on:      
+      - fw
+    privileged: true
+    stdin_open: true
+    tty: true
+  dmz1:
+    build:
+      context: ./dmz1
+    image: dmz1image
+    container_name: dmz1
+    networks:
+      dmz:
+        ipv4_address: 10.5.1.20
+    depends_on:      
+      - fw
+    privileged: true
+    stdin_open: true
+    tty: true
+  dmz2:    
+    build:
+      context: ./dmz2
+    image: dmz2image
+    container_name: dmz2
+    networks:
+      dmz:
+        ipv4_address: 10.5.1.21
+    depends_on:      
+      - fw
+    privileged: true
+    stdin_open: true
+    tty: true  
+  int1:
+    build:
+      context: ./internal1
+    image: internal1image
+    container_name: int1
+    networks:
+      intranet:
+        ipv4_address: 10.5.2.20
+    depends_on:      
+      - fw
+    privileged: true
+    stdin_open: true
+    tty: true
+  int2:
+    build:
+      context: ./internal2
+    image: internal2image
+    container_name: int2
+    networks:
+      intranet:
+        ipv4_address: 10.5.2.21
+    depends_on:      
+      - fw
+    privileged: true
+    stdin_open: true
+    tty: true
+  fw:
+    build:
+      context: ./fw
+    image: fwimage
+    container_name: fw
+    networks:
+      extranet:
+        ipv4_address: 10.5.0.1
+      dmz:
+        ipv4_address: 10.5.1.1
+      intranet:
+        ipv4_address: 10.5.2.1
+    privileged: true
+    stdin_open: true
+    tty: true
+
+
+networks:
+  extranet:
+    name: extranet
+    ipam: 
+      config:
+        - subnet: 10.5.0.0/24
+          gateway: 10.5.0.254
+
+  dmz: 
+    name: dmz
+    ipam: 
+      config:
+        - subnet: 10.5.1.0/24
+          gateway: 10.5.1.254
+
+  intranet:
+    name: intranet
+    ipam:
+      config:
+        - subnet: 10.5.2.0/24
+          gateway: 10.5.2.254
