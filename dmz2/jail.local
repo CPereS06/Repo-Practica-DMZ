@@ -1,7 +1,12 @@
+[DEFAULT]
+bantime  = 10m
+findtime = 10m
+maxretry = 2
+backend  = auto
+banaction = iptables-multiport
+ignoreip = 127.0.0.1/8
+
 [sshd]
 enabled = true
-port = 2222
+port    = 2222
 logpath = /var/log/auth.log
-filter = sshd
-maxretry = 2
-bantime = 600
