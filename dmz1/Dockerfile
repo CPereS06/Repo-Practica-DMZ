@@ -11,10 +11,11 @@ RUN apt-get update && \
 
 # Usuario con privilegios para ejecutar COWRIE
 RUN useradd -m -s /bin/bash -p "" cowrie
+
 USER cowrie
 WORKDIR /home/cowrie
-RUN git clone http://github.com/cowrie/cowrie
 
+RUN git clone http://github.com/cowrie/cowrie
 WORKDIR /home/cowrie/cowrie
 
 RUN python3 -m venv cowrie-env && \
@@ -22,10 +23,23 @@ RUN python3 -m venv cowrie-env && \
     python -m pip install --upgrade pip && \
     python -m pip install -e .
 
-EXPOSE 2222 2223
+# Configurar cowrie.cfg personalizado
+RUN mkdir -p /home/cowrie/cowrie/etc && \
+    echo "[ssh]" > /home/cowrie/cowrie/etc/cowrie.cfg && \
+    echo "listen_endpoints = tcp:2222:interface=0.0.0.0" >> /home/cowrie/cowrie/etc/cowrie.cfg && \
+    echo "auth_class = AuthRandom" >> /home/cowrie/cowrie/etc/cowrie.cfg && \
+    echo "" >> /home/cowrie/cowrie/etc/cowrie.cfg && \
+    echo "[shell]" >> /home/cowrie/cowrie/etc/cowrie.cfg && \
+    echo "hostname = CARLA" >> /home/cowrie/cowrie/etc/cowrie.cfg
+
+RUN echo "cowrie:1001:*" > /home/cowrie/cowrie/etc/userdb.txt
+
+USER root
 
 COPY index.html /var/www/html/index.html
 COPY start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
+
+EXPOSE 2222
 
 CMD ["/usr/local/bin/start.sh"]
