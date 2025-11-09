@@ -1,10 +1,8 @@
 #!/bin/bash
 
-# Aplicar las reglas desde el script
-bash /usr/local/bin/iptables.sh
-
-# COWRIE
-runuser -u cowrie -- bash -lc 'cd /home/cowrie/cowrie && source cowrie-env/bin/activate && cowrie start'
+sed -i 's/^#\?PermitRootLogin .*/PermitRootLogin yes/' /etc/ssh/sshd_config
+sed -i 's/^#\?PasswordAuthentication .*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+sed -i 's/^#?PubkeyAuthentication\s+.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
 
 # Mantener contenedor activo
 exec /usr/sbin/sshd -D

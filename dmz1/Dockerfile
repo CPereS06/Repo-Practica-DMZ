@@ -8,9 +8,26 @@ RUN apt update && \
     build-essential libpython3-dev python3-minimal authbind && \
     apt clean && rm -rf /var/lib/apt/lists/*
 
-# Crear usuario con privilegios para ejecutar COWRIE con directorio personal, 
-# con /bin/bash como shell predeterminado y con una contraseña vacía. El
-# nombre del usuario es cowrie
+# Activar el módulo SSL de Apache y activa la configuración
+RUN a2enmod ssl && \
+    a2ensite default-ssl
+    
+RUN mkdir -p /var/run/sshd
+RUN echo "root:root" | chpasswd
+
+# Firma del certificado SSL
+RUN mkdir -p /etc/ssl/private && \
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout /etc/ssl/private/apache-selfsigned.key \
+    -out /etc/ssl/certs/apache-selfsigned.crt \
+    -subj "/C=ES/ST=Madrid/L=Madrid/O=SICO/CN=localhost"
+
+# Configuración para usar SSL
+RUN sed -i 's|SSLCertificateFile.*|SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt|g' /etc/apache2/sites-available/default-ssl.conf && \
+    sed -i 's|SSLCertificateKeyFile.*|SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key|g' /etc/apache2/sites-available/default-ssl.conf
+
+# Crear usuario con privilegios para ejecutar COWRIE con directorio personal, con /bin/bash como shell 
+# predeterminado y con una contraseña vacía. El nombre del usuario es cowrie
 RUN useradd -m -s /bin/bash -p "" cowrie
 # Cambia el usuario predeterminado a COWRIE
 USER cowrie
@@ -19,6 +36,7 @@ WORKDIR /home/cowrie
 
 # Importamos el git clone
 RUN git clone http://github.com/cowrie/cowrie
+
 WORKDIR /home/cowrie/cowrie/
 
 # Configuración de los entornos
@@ -39,5 +57,5 @@ COPY index.html /var/www/html/index.html
 COPY start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
-# Iniciar 
+# Iniciar
 CMD ["/bin/bash", "-c", "/usr/local/bin/start.sh"]
